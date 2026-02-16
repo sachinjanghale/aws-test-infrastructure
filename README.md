@@ -3,6 +3,10 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Terraform](https://img.shields.io/badge/Terraform-1.12+-purple.svg)](https://www.terraform.io/)
 [![AWS Provider](https://img.shields.io/badge/AWS%20Provider-5.98.0-orange.svg)](https://registry.terraform.io/providers/hashicorp/aws/latest)
+[![GitHub stars](https://img.shields.io/github/stars/sachinjanghale/aws-test-infrastructure?style=social)](https://github.com/sachinjanghale/aws-test-infrastructure/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/sachinjanghale/aws-test-infrastructure?style=social)](https://github.com/sachinjanghale/aws-test-infrastructure/network/members)
+[![GitHub issues](https://img.shields.io/github/issues/sachinjanghale/aws-test-infrastructure)](https://github.com/sachinjanghale/aws-test-infrastructure/issues)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/sachinjanghale/aws-test-infrastructure/pulls)
 
 A comprehensive Terraform project that provisions a diverse AWS test infrastructure for testing cloud migration tools, IaC generators, and AWS service discovery tools. This project creates 145+ AWS resources across 28 service categories while staying within free tier or minimal cost.
 
