@@ -1,0 +1,47 @@
+# AWS Test Infrastructure Configuration Example
+# Copy this file to terraform.tfvars and customize as needed
+
+# Basic Configuration
+aws_region   = "ap-south-1"
+project_name = "infrasyn-test"
+cost_limit   = 100
+
+# Module Flags - Enable/Disable specific service categories
+enable_networking    = true
+enable_security      = true
+enable_storage       = true
+enable_compute       = true
+enable_database      = true
+enable_messaging     = true
+enable_monitoring    = true
+enable_api           = true
+enable_container     = true
+enable_code_services = true
+enable_orchestration = true
+
+# Cost-Sensitive Options
+enable_rds         = false # Adds ~$15/month if enabled
+enable_nat_gateway = false # Adds ~$32/month per AZ if enabled
+enable_codepipeline = false # CodePipeline has minimal cost but adds complexity
+
+# Networking Configuration
+vpc_cidr = "10.0.0.0/16"
+# availability_zones = ["ap-south-1a", "ap-south-1b"] # Optional: specify AZs
+
+# RDS Configuration (only used if enable_rds = true)
+# db_username = "admin"
+# db_password = "YourSecurePassword123!" # Must be at least 8 characters
+
+# Estimated Monthly Cost Breakdown (with default settings):
+# - Networking: $0 (free tier)
+# - Security: ~$1 (Secrets Manager)
+# - Storage: ~$1 (EBS)
+# - Compute: ~$8 (t2.micro EC2)
+# - Database: $0 (DynamoDB free tier) or +$15 (with RDS)
+# - Messaging: $0 (free tier)
+# - Monitoring: ~$2 (CloudTrail)
+# - API: $0 (free tier)
+# - Container: ~$5 (Fargate minimal)
+# - Code Services: $0 (free tier)
+# - Orchestration: $0 (free tier)
+# Total: ~$17/month (without RDS) or ~$32/month (with RDS)

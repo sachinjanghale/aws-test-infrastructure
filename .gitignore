@@ -1,0 +1,70 @@
+# Terraform files
+*.tfstate
+*.tfstate.*
+*.tfvars
+!terraform.tfvars.example
+.terraform/
+.terraform.lock.hcl
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+tfplan
+tfplan.*
+
+# Private keys and certificates
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# AWS credentials
+.aws/
+credentials
+config
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Backup files
+*.backup
+*.bak
+*.tmp
+*~
+
+# Test files
+tests/test-results/
+tests/*.log
+
+# Lambda deployment packages (generated)
+modules/compute/lambda_functions/*.zip
+modules/compute/lambda_layer.zip
+
+# Local development
+.local/
+tmp/
+temp/
+
+# Documentation builds
+docs/_build/
+site/
+.kiro
+.vscode
