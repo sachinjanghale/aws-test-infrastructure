@@ -43,11 +43,17 @@ variable "common_tags" {
 variable "sqs_queue_arn" {
   description = "SQS queue ARN for Lambda event source mapping"
   type        = string
-  default     = ""
+  default     = null
 }
 
 variable "sqs_dlq_arn" {
   description = "SQS DLQ ARN for Lambda failure destination"
   type        = string
-  default     = ""
+  default     = null
+}
+
+variable "enable_messaging" {
+  description = "Whether messaging module is enabled"
+  type        = bool
+  default     = false
 }

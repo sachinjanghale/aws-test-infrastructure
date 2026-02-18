@@ -307,16 +307,20 @@ resource "aws_lambda_function_event_invoke_config" "python_config" {
   maximum_event_age_in_seconds = 3600
   maximum_retry_attempts       = 1
 
-  destination_config {
-    on_failure {
-      destination = var.sqs_dlq_arn != "" ? var.sqs_dlq_arn : null
+  dynamic "destination_config" {
+    for_each = var.enable_messaging ? [1] : []
+    content {
+      on_failure {
+        destination = var.sqs_dlq_arn
+      }
     }
   }
 }
 
 # Lambda Event Source Mapping (for SQS)
+# Only created when messaging module is enabled
 resource "aws_lambda_event_source_mapping" "sqs_trigger" {
-  count            = var.sqs_queue_arn != "" ? 1 : 0
+  count            = var.enable_messaging ? 1 : 0
   event_source_arn = var.sqs_queue_arn
   function_name    = aws_lambda_function.python_function.arn
   batch_size       = 10

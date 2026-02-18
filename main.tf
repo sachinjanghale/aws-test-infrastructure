@@ -65,8 +65,9 @@ module "compute" {
   lambda_execution_role_arn = module.security[0].lambda_execution_role_arn
   ec2_instance_profile_name = module.security[0].ec2_instance_profile_name
   ebs_volume_id             = module.storage[0].ebs_volume_id
-  sqs_queue_arn             = var.enable_messaging ? module.messaging[0].sqs_standard_queue_arn : ""
-  sqs_dlq_arn               = var.enable_messaging ? module.messaging[0].sqs_dlq_arn : ""
+  enable_messaging          = var.enable_messaging
+  sqs_queue_arn             = var.enable_messaging ? module.messaging[0].sqs_standard_queue_arn : null
+  sqs_dlq_arn               = var.enable_messaging ? module.messaging[0].sqs_dlq_arn : null
   common_tags               = local.common_tags
 
   depends_on = [module.networking, module.security, module.storage, module.messaging]
