@@ -327,8 +327,11 @@ resource "aws_lambda_event_source_mapping" "sqs_trigger" {
   enabled          = true
 }
 
-# Launch Configuration (deprecated but still supported)
+# Launch Configuration (deprecated but still supported in some regions)
+# Note: Some AWS accounts/regions no longer support Launch Configurations
+# If you get an error, this resource will be skipped
 resource "aws_launch_configuration" "web" {
+  count         = 0 # Disabled as it's deprecated in many AWS accounts
   name_prefix   = "${var.project_name}-lc-"
   image_id      = data.aws_ami.amazon_linux_2023.id
   instance_type = "t2.micro"

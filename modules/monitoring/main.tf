@@ -97,7 +97,8 @@ resource "aws_cloudwatch_dashboard" "main" {
             for instance_id in var.ec2_instance_ids : [
               "AWS/EC2",
               "CPUUtilization",
-              { "InstanceId" = instance_id }
+              "InstanceId",
+              instance_id
             ]
           ]
           period = 300
@@ -113,7 +114,8 @@ resource "aws_cloudwatch_dashboard" "main" {
             for function_name in var.lambda_function_names : [
               "AWS/Lambda",
               "Invocations",
-              { "FunctionName" = function_name }
+              "FunctionName",
+              function_name
             ]
           ]
           period = 300
@@ -129,7 +131,8 @@ resource "aws_cloudwatch_dashboard" "main" {
             for function_name in var.lambda_function_names : [
               "AWS/Lambda",
               "Errors",
-              { "FunctionName" = function_name }
+              "FunctionName",
+              function_name
             ]
           ]
           period = 300
@@ -145,7 +148,8 @@ resource "aws_cloudwatch_dashboard" "main" {
             for function_name in var.lambda_function_names : [
               "AWS/Lambda",
               "Duration",
-              { "FunctionName" = function_name }
+              "FunctionName",
+              function_name
             ]
           ]
           period = 300

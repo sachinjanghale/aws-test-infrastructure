@@ -123,6 +123,7 @@ module "api" {
   count  = var.enable_api && var.enable_compute ? 1 : 0
 
   project_name = var.project_name
+  aws_region   = var.aws_region
   lambda_function_arns = {
     python = module.compute[0].python_lambda_arn
     nodejs = module.compute[0].nodejs_lambda_arn

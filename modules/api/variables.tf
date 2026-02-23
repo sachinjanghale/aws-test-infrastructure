@@ -36,3 +36,8 @@ variable "nlb_arn" {
   type        = string
   default     = ""
 }
+
+variable "aws_region" {
+  description = "AWS region for API Gateway integrations"
+  type        = string
+}

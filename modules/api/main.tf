@@ -55,7 +55,7 @@ resource "aws_api_gateway_integration" "hello_get" {
   http_method             = aws_api_gateway_method.hello_get.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
-  uri                     = "${var.lambda_function_arns["python"]}/invocations"
+  uri                     = "arn:aws:apigateway:${var.aws_region}:lambda:path/2015-03-31/functions/${var.lambda_function_arns["python"]}/invocations"
 }
 
 # API Gateway Integration - POST /data -> Node.js Lambda
@@ -65,7 +65,7 @@ resource "aws_api_gateway_integration" "data_post" {
   http_method             = aws_api_gateway_method.data_post.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
-  uri                     = "${var.lambda_function_arns["nodejs"]}/invocations"
+  uri                     = "arn:aws:apigateway:${var.aws_region}:lambda:path/2015-03-31/functions/${var.lambda_function_arns["nodejs"]}/invocations"
 }
 
 # Lambda Permission for API Gateway - Python Lambda
@@ -136,8 +136,8 @@ resource "aws_api_gateway_method_settings" "main" {
 
   settings {
     metrics_enabled    = true
-    logging_level      = "INFO"
-    data_trace_enabled = true
+    logging_level      = "OFF"  # Disabled - requires CloudWatch Logs role in account settings
+    data_trace_enabled = false
   }
 }
 
@@ -146,7 +146,7 @@ resource "aws_api_gateway_authorizer" "token" {
   name                   = "${var.project_name}-token-authorizer"
   rest_api_id            = aws_api_gateway_rest_api.main.id
   type                   = "TOKEN"
-  authorizer_uri         = "${var.lambda_function_arns["python"]}/invocations"
+  authorizer_uri         = "arn:aws:apigateway:${var.aws_region}:lambda:path/2015-03-31/functions/${var.lambda_function_arns["python"]}/invocations"
   authorizer_credentials = var.api_gateway_role_arn
   identity_source        = "method.request.header.Authorization"
 }

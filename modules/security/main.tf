@@ -93,6 +93,16 @@ resource "aws_iam_role_policy" "lambda_execution" {
           "kms:GenerateDataKey"
         ]
         Resource = aws_kms_key.main.arn
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "sqs:ReceiveMessage",
+          "sqs:DeleteMessage",
+          "sqs:GetQueueAttributes",
+          "sqs:SendMessage"
+        ]
+        Resource = "arn:aws:sqs:*:*:${var.project_name}-*"
       }
     ]
   })
@@ -470,9 +480,14 @@ resource "aws_iam_role_policy" "codebuild" {
   })
 }
 
+# Random suffix for Secrets Manager to avoid conflicts with deleted secrets
+resource "random_id" "secret_suffix" {
+  byte_length = 4
+}
+
 # Secrets Manager Secrets
 resource "aws_secretsmanager_secret" "db_credentials" {
-  name                    = "${var.project_name}-db-credentials"
+  name                    = "${var.project_name}-db-credentials-${random_id.secret_suffix.hex}"
   description             = "Database credentials for ${var.project_name}"
   kms_key_id              = aws_kms_key.main.id
   recovery_window_in_days = 7
@@ -499,7 +514,7 @@ resource "aws_secretsmanager_secret_version" "db_credentials" {
 }
 
 resource "aws_secretsmanager_secret" "api_keys" {
-  name                    = "${var.project_name}-api-keys"
+  name                    = "${var.project_name}-api-keys-${random_id.secret_suffix.hex}"
   description             = "API keys for ${var.project_name}"
   kms_key_id              = aws_kms_key.main.id
   recovery_window_in_days = 7
