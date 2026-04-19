@@ -136,7 +136,7 @@ resource "aws_api_gateway_method_settings" "main" {
 
   settings {
     metrics_enabled    = true
-    logging_level      = "OFF"  # Disabled - requires CloudWatch Logs role in account settings
+    logging_level      = "OFF" # Disabled - requires CloudWatch Logs role in account settings
     data_trace_enabled = false
   }
 }

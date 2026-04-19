@@ -100,3 +100,38 @@ output "estimated_cost" {
   description = "Estimated monthly cost for security resources"
   value       = 0.80 # 2 secrets * $0.40/month
 }
+
+output "glue_role_arn" {
+  description = "Glue service role ARN"
+  value       = aws_iam_role.glue.arn
+}
+
+output "config_role_arn" {
+  description = "AWS Config service role ARN"
+  value       = aws_iam_role.config.arn
+}
+
+output "iot_role_arn" {
+  description = "IoT service role ARN"
+  value       = aws_iam_role.iot.arn
+}
+
+output "firehose_role_arn" {
+  description = "Kinesis Firehose service role ARN"
+  value       = aws_iam_role.firehose.arn
+}
+
+output "appsync_role_arn" {
+  description = "AppSync service role ARN"
+  value       = aws_iam_role.appsync.arn
+}
+
+output "batch_service_role_arn" {
+  description = "Batch service role ARN"
+  value       = aws_iam_role.batch_service.arn
+}
+
+output "batch_execution_role_arn" {
+  description = "Batch execution role ARN"
+  value       = aws_iam_role.batch_execution.arn
+}

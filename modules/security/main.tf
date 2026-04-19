@@ -672,3 +672,181 @@ resource "aws_iam_user_policy_attachment" "test_user2_custom" {
 resource "aws_iam_access_key" "test_user1" {
   user = aws_iam_user.test_user1.name
 }
+
+# IAM Role for Glue
+resource "aws_iam_role" "glue" {
+  name = "${var.project_name}-glue-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
+      Principal = { Service = "glue.amazonaws.com" }
+    }]
+  })
+
+  tags = merge(var.common_tags, { Name = "${var.project_name}-glue-role" })
+}
+
+resource "aws_iam_role_policy_attachment" "glue_service" {
+  role       = aws_iam_role.glue.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"
+}
+
+resource "aws_iam_role_policy" "glue_s3" {
+  name = "${var.project_name}-glue-s3-policy"
+  role = aws_iam_role.glue.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:ListBucket"]
+      Resource = ["arn:aws:s3:::${var.project_name}-*", "arn:aws:s3:::${var.project_name}-*/*"]
+    }]
+  })
+}
+
+# IAM Role for AWS Config
+resource "aws_iam_role" "config" {
+  name = "${var.project_name}-config-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
+      Principal = { Service = "config.amazonaws.com" }
+    }]
+  })
+
+  tags = merge(var.common_tags, { Name = "${var.project_name}-config-role" })
+}
+
+resource "aws_iam_role_policy_attachment" "config_service" {
+  role       = aws_iam_role.config.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWS_ConfigRole"
+}
+
+# IAM Role for IoT
+resource "aws_iam_role" "iot" {
+  name = "${var.project_name}-iot-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
+      Principal = { Service = "iot.amazonaws.com" }
+    }]
+  })
+
+  tags = merge(var.common_tags, { Name = "${var.project_name}-iot-role" })
+}
+
+resource "aws_iam_role_policy" "iot_lambda" {
+  name = "${var.project_name}-iot-lambda-policy"
+  role = aws_iam_role.iot.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["lambda:InvokeFunction"]
+      Resource = "arn:aws:lambda:*:*:function:${var.project_name}-*"
+    }]
+  })
+}
+
+# IAM Role for Kinesis Firehose
+resource "aws_iam_role" "firehose" {
+  name = "${var.project_name}-firehose-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
+      Principal = { Service = "firehose.amazonaws.com" }
+    }]
+  })
+
+  tags = merge(var.common_tags, { Name = "${var.project_name}-firehose-role" })
+}
+
+resource "aws_iam_role_policy" "firehose_s3" {
+  name = "${var.project_name}-firehose-s3-policy"
+  role = aws_iam_role.firehose.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["s3:AbortMultipartUpload", "s3:GetBucketLocation", "s3:GetObject", "s3:ListBucket", "s3:ListBucketMultipartUploads", "s3:PutObject"]
+      Resource = ["arn:aws:s3:::${var.project_name}-*", "arn:aws:s3:::${var.project_name}-*/*"]
+    }]
+  })
+}
+
+# IAM Role for AppSync
+resource "aws_iam_role" "appsync" {
+  name = "${var.project_name}-appsync-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
+      Principal = { Service = "appsync.amazonaws.com" }
+    }]
+  })
+
+  tags = merge(var.common_tags, { Name = "${var.project_name}-appsync-role" })
+}
+
+resource "aws_iam_role_policy_attachment" "appsync_logs" {
+  role       = aws_iam_role.appsync.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSAppSyncPushToCloudWatchLogs"
+}
+
+# IAM Role for Batch
+resource "aws_iam_role" "batch_service" {
+  name = "${var.project_name}-batch-service-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
+      Principal = { Service = "batch.amazonaws.com" }
+    }]
+  })
+
+  tags = merge(var.common_tags, { Name = "${var.project_name}-batch-service-role" })
+}
+
+resource "aws_iam_role_policy_attachment" "batch_service" {
+  role       = aws_iam_role.batch_service.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole"
+}
+
+resource "aws_iam_role" "batch_execution" {
+  name = "${var.project_name}-batch-execution-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
+      Principal = { Service = "ecs-tasks.amazonaws.com" }
+    }]
+  })
+
+  tags = merge(var.common_tags, { Name = "${var.project_name}-batch-execution-role" })
+}
+
+resource "aws_iam_role_policy_attachment" "batch_execution" {
+  role       = aws_iam_role.batch_execution.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}

@@ -48,3 +48,8 @@ output "estimated_cost" {
   description = "Estimated monthly cost for storage resources"
   value       = 0.704 # 8GB EBS gp3 * $0.088/GB-month
 }
+
+output "s3_versioned_bucket_domain" {
+  description = "Versioned S3 bucket domain name"
+  value       = aws_s3_bucket.versioned.bucket_regional_domain_name
+}

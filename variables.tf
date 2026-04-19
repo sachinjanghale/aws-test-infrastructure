@@ -200,3 +200,173 @@ variable "enable_vpc_link" {
   type        = bool
   default     = false
 }
+
+# New service module toggles
+variable "enable_ssm" {
+  description = "Enable SSM Parameter Store"
+  type        = bool
+  default     = true
+}
+
+variable "enable_eip" {
+  description = "Enable EIP and ENI resources"
+  type        = bool
+  default     = true
+}
+
+variable "enable_ses" {
+  description = "Enable SES email service"
+  type        = bool
+  default     = true
+}
+
+variable "ses_email" {
+  description = "Email address for SES identity"
+  type        = string
+  default     = "test@example.com"
+}
+
+variable "enable_xray" {
+  description = "Enable X-Ray sampling rules"
+  type        = bool
+  default     = true
+}
+
+variable "enable_cognito" {
+  description = "Enable Cognito user pool and identity pool"
+  type        = bool
+  default     = true
+}
+
+variable "enable_efs" {
+  description = "Enable EFS file system (~$0.30/GB-month)"
+  type        = bool
+  default     = true
+}
+
+variable "enable_kinesis" {
+  description = "Enable Kinesis Stream and Firehose (~$0.015/hr for shard)"
+  type        = bool
+  default     = true
+}
+
+variable "enable_waf" {
+  description = "Enable WAFv2 Web ACL"
+  type        = bool
+  default     = true
+}
+
+variable "enable_cloudfront" {
+  description = "Enable CloudFront distribution (free tier available)"
+  type        = bool
+  default     = true
+}
+
+variable "enable_codedeploy" {
+  description = "Enable CodeDeploy applications"
+  type        = bool
+  default     = true
+}
+
+variable "enable_config" {
+  description = "Enable AWS Config recorder and rules (~$2/month)"
+  type        = bool
+  default     = true
+}
+
+variable "enable_resourcegroups" {
+  description = "Enable Resource Groups"
+  type        = bool
+  default     = true
+}
+
+variable "enable_iot" {
+  description = "Enable IoT resources"
+  type        = bool
+  default     = true
+}
+
+variable "enable_glue" {
+  description = "Enable Glue data catalog and ETL"
+  type        = bool
+  default     = true
+}
+
+variable "enable_ecrpublic" {
+  description = "Enable ECR Public repository (global, needs us-east-1)"
+  type        = bool
+  default     = true
+}
+
+# Extended service toggles
+variable "enable_accessanalyzer" {
+  type    = bool
+  default = true
+}
+
+variable "enable_acm" {
+  type    = bool
+  default = true
+}
+
+variable "enable_alb" {
+  type    = bool
+  default = true
+}
+
+variable "enable_appsync" {
+  type    = bool
+  default = true
+}
+
+variable "enable_batch" {
+  type    = bool
+  default = true
+}
+
+variable "enable_budgets" {
+  type    = bool
+  default = true
+}
+
+variable "budget_alert_email" {
+  type    = string
+  default = "admin@example.com"
+}
+
+variable "enable_cloudformation" {
+  type    = bool
+  default = true
+}
+
+variable "enable_elasticache" {
+  description = "Enable ElastiCache Redis (~$12/month for t3.micro)"
+  type        = bool
+  default     = false
+}
+
+variable "enable_securityhub" {
+  type    = bool
+  default = true
+}
+
+variable "enable_servicecatalog" {
+  type    = bool
+  default = true
+}
+
+variable "enable_swf" {
+  type    = bool
+  default = true
+}
+
+variable "enable_vpc_peering" {
+  type    = bool
+  default = true
+}
+
+variable "enable_mq" {
+  description = "Enable Amazon MQ (~$18/month for mq.t3.micro)"
+  type        = bool
+  default     = false
+}

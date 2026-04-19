@@ -15,27 +15,14 @@ terraform {
       version = "~> 4.0"
     }
   }
-
-  # Backend configuration for state management
-  # Uncomment and configure after creating S3 bucket and DynamoDB table
-  # backend "s3" {
-  #   bucket         = "infrasyn-terraform-state"
-  #   key            = "test-infrastructure/terraform.tfstate"
-  #   region         = "ap-south-1"
-  #   dynamodb_table = "infrasyn-terraform-locks"
-  #   encrypt        = true
-  # }
 }
 
 provider "aws" {
   region = var.aws_region
+}
 
-  default_tags {
-    tags = {
-      Project     = var.project_name
-      Environment = "test"
-      ManagedBy   = "terraform"
-      CostCenter  = "infrasyn-testing"
-    }
-  }
+# Provider alias for global services (ECR Public, CloudFront, WAF Classic)
+provider "aws" {
+  alias  = "us_east_1"
+  region = "us-east-1"
 }

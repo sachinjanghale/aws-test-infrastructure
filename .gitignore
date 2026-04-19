@@ -68,4 +68,3 @@ docs/_build/
 site/
 .kiro
 .vscode
-terraform.tfvars

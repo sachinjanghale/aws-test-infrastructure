@@ -258,3 +258,17 @@ resource "aws_cloudtrail" "main" {
 
   depends_on = [aws_s3_bucket_policy.cloudtrail]
 }
+
+# CloudWatch Log Group for WAF
+resource "aws_cloudwatch_log_group" "waf" {
+  name              = "aws-waf-logs-${var.project_name}"
+  retention_in_days = 7
+
+  tags = merge(
+    var.common_tags,
+    {
+      Name    = "aws-waf-logs-${var.project_name}"
+      Purpose = "Log group for WAF"
+    }
+  )
+}

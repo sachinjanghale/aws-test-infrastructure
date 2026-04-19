@@ -43,3 +43,8 @@ output "estimated_cost" {
   description = "Estimated monthly cost for monitoring resources"
   value       = 0.223 # CloudWatch alarms + CloudTrail storage
 }
+
+output "waf_log_group_arn" {
+  description = "WAF CloudWatch log group ARN"
+  value       = aws_cloudwatch_log_group.waf.arn
+}
