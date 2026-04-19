@@ -58,3 +58,18 @@ output "estimated_cost" {
   description = "Estimated monthly cost for database resources"
   value       = var.enable_rds ? 14.71 : 0 # DynamoDB free tier, RDS: $12.41 + $2.30
 }
+
+output "rds_address" {
+  description = "RDS instance address (hostname only)"
+  value       = var.enable_rds ? aws_db_instance.main[0].address : ""
+}
+
+output "rds_identifier" {
+  description = "RDS instance identifier"
+  value       = var.enable_rds ? aws_db_instance.main[0].identifier : ""
+}
+
+output "rds_snapshot_id" {
+  description = "RDS snapshot identifier"
+  value       = var.enable_rds ? aws_db_snapshot.main[0].id : null
+}

@@ -52,3 +52,27 @@ variable "common_tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "rds_monitoring_role_arn" {
+  description = "Dedicated IAM role ARN for RDS enhanced monitoring"
+  type        = string
+  default     = ""
+}
+
+variable "sns_topic_arn" {
+  description = "SNS topic ARN for RDS event notifications"
+  type        = string
+  default     = ""
+}
+
+variable "rds_secret_arn" {
+  description = "Secrets Manager ARN for RDS master credentials"
+  type        = string
+  default     = ""
+}
+
+variable "enable_sns_subscription" {
+  description = "Enable RDS event subscription to SNS (set to true only when SNS topic exists)"
+  type        = bool
+  default     = false
+}

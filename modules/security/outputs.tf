@@ -135,3 +135,23 @@ output "batch_execution_role_arn" {
   description = "Batch execution role ARN"
   value       = aws_iam_role.batch_execution.arn
 }
+
+output "rds_monitoring_role_arn" {
+  description = "RDS enhanced monitoring role ARN"
+  value       = aws_iam_role.rds_monitoring.arn
+}
+
+output "rds_master_secret_arn" {
+  description = "RDS master credentials secret ARN"
+  value       = aws_secretsmanager_secret.rds_master.arn
+}
+
+output "lambda_db_config_secret_arn" {
+  description = "Lambda DB config secret ARN"
+  value       = aws_secretsmanager_secret.lambda_db_config.arn
+}
+
+output "total_secrets_count" {
+  description = "Total number of Secrets Manager secrets"
+  value       = 5 # db_credentials, api_keys, rds_master, lambda_db_config + 1 for future
+}

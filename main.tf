@@ -28,8 +28,11 @@ module "security" {
   source = "./modules/security"
   count  = var.enable_security ? 1 : 0
 
-  project_name = var.project_name
-  common_tags  = local.common_tags
+  project_name         = var.project_name
+  rds_endpoint         = "placeholder-update-after-apply"
+  rds_identifier       = "placeholder-update-after-apply"
+  elasticache_endpoint = "placeholder-update-after-apply"
+  common_tags          = local.common_tags
 }
 
 # Networking Module
@@ -71,9 +74,28 @@ module "compute" {
   enable_messaging          = var.enable_messaging
   sqs_queue_arn             = var.enable_messaging ? module.messaging[0].sqs_standard_queue_arn : null
   sqs_dlq_arn               = var.enable_messaging ? module.messaging[0].sqs_dlq_arn : null
-  common_tags               = local.common_tags
 
-  depends_on = [module.networking, module.security, module.storage, module.messaging]
+  # Secrets wiring
+  db_secret_arn       = module.security[0].db_credentials_secret_arn
+  api_keys_secret_arn = module.security[0].api_keys_secret_arn
+
+  # RDS endpoint for Lambda env var
+  rds_endpoint = var.enable_database && var.enable_rds ? module.database[0].rds_address : ""
+
+  # DynamoDB and S3 for Lambda env vars
+  dynamodb_table_name = var.enable_database ? module.database[0].dynamodb_simple_table_name : ""
+  s3_bucket_name      = module.storage[0].s3_versioned_bucket_name
+
+  # VPC config for Python Lambda (private subnets)
+  private_subnet_ids       = module.networking[0].private_subnet_ids
+  lambda_security_group_id = module.networking[0].security_group_lambda_id
+
+  # S3 EventBridge trigger
+  enable_s3_trigger = var.enable_storage
+
+  common_tags = local.common_tags
+
+  depends_on = [module.networking, module.security, module.storage, module.messaging, module.database]
 }
 
 # Database Module
@@ -81,17 +103,21 @@ module "database" {
   source = "./modules/database"
   count  = var.enable_database ? 1 : 0
 
-  project_name       = var.project_name
-  enable_rds         = var.enable_rds && var.enable_networking
-  vpc_id             = var.enable_networking ? module.networking[0].vpc_id : ""
-  private_subnet_ids = var.enable_networking ? module.networking[0].private_subnet_ids : []
-  security_group_id  = var.enable_networking ? module.networking[0].security_group_database_id : ""
-  kms_key_arn        = var.enable_security ? module.security[0].kms_key_arn : ""
-  db_username        = var.db_username
-  db_password        = var.db_password
-  common_tags        = local.common_tags
+  project_name            = var.project_name
+  enable_rds              = var.enable_rds && var.enable_networking
+  vpc_id                  = var.enable_networking ? module.networking[0].vpc_id : ""
+  private_subnet_ids      = var.enable_networking ? module.networking[0].private_subnet_ids : []
+  security_group_id       = var.enable_networking ? module.networking[0].security_group_database_id : ""
+  kms_key_arn             = var.enable_security ? module.security[0].kms_key_arn : ""
+  rds_monitoring_role_arn = var.enable_security ? module.security[0].rds_monitoring_role_arn : ""
+  rds_secret_arn          = var.enable_security ? module.security[0].db_credentials_secret_arn : ""
+  sns_topic_arn           = var.enable_messaging ? module.messaging[0].sns_standard_topic_arn : ""
+  enable_sns_subscription = var.enable_messaging
+  db_username             = var.db_username
+  db_password             = var.db_password
+  common_tags             = local.common_tags
 
-  depends_on = [module.networking, module.security]
+  depends_on = [module.networking, module.security, module.messaging]
 }
 
 # Messaging Module
@@ -154,7 +180,13 @@ module "container" {
   security_group_id           = module.networking[0].security_group_ecs_id
   ecs_task_execution_role_arn = module.security[0].ecs_task_execution_role_arn
   ecs_task_role_arn           = module.security[0].ecs_task_role_arn
-  common_tags                 = local.common_tags
+  kms_key_arn                 = module.security[0].kms_key_arn
+
+  # Wire secrets to ECS containers
+  db_secret_arn       = module.security[0].db_credentials_secret_arn
+  api_keys_secret_arn = module.security[0].api_keys_secret_arn
+
+  common_tags = local.common_tags
 
   depends_on = [module.networking, module.security]
 }
@@ -441,10 +473,10 @@ module "budgets" {
   source = "./modules/budgets"
   count  = var.enable_budgets ? 1 : 0
 
-  project_name  = var.project_name
-  budget_limit  = tostring(var.cost_limit)
-  alert_email   = var.budget_alert_email
-  common_tags   = local.common_tags
+  project_name = var.project_name
+  budget_limit = tostring(var.cost_limit)
+  alert_email  = var.budget_alert_email
+  common_tags  = local.common_tags
 
   providers = {
     aws = aws.us_east_1

@@ -12,7 +12,7 @@ variable "aws_region" {
 variable "project_name" {
   description = "Project identifier for resource naming"
   type        = string
-  default     = "infrasyn-test"
+  default     = "infrasync-scane-test-demo-account"
 
   validation {
     condition     = can(regex("^[a-z0-9-]+$", var.project_name))

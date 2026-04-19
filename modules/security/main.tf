@@ -850,3 +850,86 @@ resource "aws_iam_role_policy_attachment" "batch_execution" {
   role       = aws_iam_role.batch_execution.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
+
+# Dedicated IAM Role for RDS Enhanced Monitoring
+resource "aws_iam_role" "rds_monitoring" {
+  name = "${var.project_name}-rds-monitoring-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
+      Principal = { Service = "monitoring.rds.amazonaws.com" }
+    }]
+  })
+
+  tags = merge(var.common_tags, { Name = "${var.project_name}-rds-monitoring-role" })
+}
+
+resource "aws_iam_role_policy_attachment" "rds_monitoring" {
+  role       = aws_iam_role.rds_monitoring.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
+}
+
+# RDS-specific Secrets Manager secret (separate from generic db_credentials)
+resource "aws_secretsmanager_secret" "rds_master" {
+  name                    = "${var.project_name}-rds-master-${random_id.secret_suffix.hex}"
+  description             = "RDS master credentials - auto-rotated"
+  kms_key_id              = aws_kms_key.main.id
+  recovery_window_in_days = 7
+
+  tags = merge(var.common_tags, {
+    Name    = "${var.project_name}-rds-master"
+    Purpose = "RDS master credentials with rotation support"
+    Service = "rds"
+  })
+}
+
+resource "aws_secretsmanager_secret_version" "rds_master" {
+  secret_id = aws_secretsmanager_secret.rds_master.id
+  secret_string = jsonencode({
+    username             = "admin"
+    password             = "ChangeMe123!"
+    engine               = "mysql"
+    host                 = var.rds_endpoint
+    port                 = 3306
+    dbname               = "testdb"
+    dbInstanceIdentifier = var.rds_identifier
+  })
+
+  lifecycle {
+    ignore_changes = [secret_string]
+  }
+}
+
+# Lambda secret that references RDS endpoint (wired integration)
+resource "aws_secretsmanager_secret" "lambda_db_config" {
+  name                    = "${var.project_name}-lambda-db-config-${random_id.secret_suffix.hex}"
+  description             = "Lambda function DB config - references RDS"
+  kms_key_id              = aws_kms_key.main.id
+  recovery_window_in_days = 7
+
+  tags = merge(var.common_tags, {
+    Name    = "${var.project_name}-lambda-db-config"
+    Purpose = "Lambda DB connection config"
+    Service = "lambda"
+  })
+}
+
+resource "aws_secretsmanager_secret_version" "lambda_db_config" {
+  secret_id = aws_secretsmanager_secret.lambda_db_config.id
+  secret_string = jsonencode({
+    db_host     = var.rds_endpoint
+    db_port     = 3306
+    db_name     = "testdb"
+    db_user     = "admin"
+    db_password = "ChangeMe123!"
+    cache_host  = var.elasticache_endpoint
+    cache_port  = 6379
+  })
+
+  lifecycle {
+    ignore_changes = [secret_string]
+  }
+}

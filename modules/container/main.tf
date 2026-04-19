@@ -90,39 +90,49 @@ resource "aws_cloudwatch_log_group" "ecs" {
   )
 }
 
-# ECS Task Definition
+# ECS Task Definition - wired to Secrets Manager
 resource "aws_ecs_task_definition" "main" {
   family                   = "${var.project_name}-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "256" # 0.25 vCPU
-  memory                   = "512" # 0.5 GB
+  cpu                      = "256"
+  memory                   = "512"
   execution_role_arn       = var.ecs_task_execution_role_arn
   task_role_arn            = var.ecs_task_role_arn
 
   container_definitions = jsonencode([
     {
       name      = "${var.project_name}-container"
-      image     = "nginx:alpine" # Using nginx as placeholder
+      image     = "nginx:alpine"
       essential = true
 
       portMappings = [
-        {
-          containerPort = 80
-          protocol      = "tcp"
-        }
+        { containerPort = 80, protocol = "tcp" }
       ]
 
+      # Plain environment variables
       environment = [
+        { name = "PROJECT_NAME", value = var.project_name },
+        { name = "ENVIRONMENT", value = "test" },
+        { name = "DB_SECRET_ARN", value = var.db_secret_arn },
+        { name = "API_KEYS_SECRET_ARN", value = var.api_keys_secret_arn }
+      ]
+
+      # Secrets from Secrets Manager - injected as env vars at runtime
+      secrets = var.db_secret_arn != "" ? [
         {
-          name  = "PROJECT_NAME"
-          value = var.project_name
+          name      = "DB_USERNAME"
+          valueFrom = "${var.db_secret_arn}:username::"
         },
         {
-          name  = "ENVIRONMENT"
-          value = "test"
+          name      = "DB_PASSWORD"
+          valueFrom = "${var.db_secret_arn}:password::"
+        },
+        {
+          name      = "DB_HOST"
+          valueFrom = "${var.db_secret_arn}:host::"
         }
-      ]
+      ] : []
 
       logConfiguration = {
         logDriver = "awslogs"
@@ -143,13 +153,10 @@ resource "aws_ecs_task_definition" "main" {
     }
   ])
 
-  tags = merge(
-    var.common_tags,
-    {
-      Name    = "${var.project_name}-task"
-      Purpose = "ECS task definition"
-    }
-  )
+  tags = merge(var.common_tags, {
+    Name    = "${var.project_name}-task"
+    Purpose = "ECS task definition with Secrets Manager integration"
+  })
 }
 
 # ECS Service
@@ -210,3 +217,88 @@ resource "aws_ecr_repository_policy" "main" {
 
 # Data source for current account
 data "aws_caller_identity" "current" {}
+
+# ECR Repository - Immutable tags (edge case)
+resource "aws_ecr_repository" "immutable" {
+  name                 = "${var.project_name}-immutable"
+  image_tag_mutability = "IMMUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  encryption_configuration {
+    encryption_type = "KMS"
+    kms_key         = var.kms_key_arn != "" ? var.kms_key_arn : null
+  }
+
+  tags = merge(
+    var.common_tags,
+    {
+      Name    = "${var.project_name}-immutable"
+      Purpose = "ECR repo with immutable tags and KMS encryption"
+    }
+  )
+}
+
+# ECR Lifecycle Policy for immutable repo
+resource "aws_ecr_lifecycle_policy" "immutable" {
+  repository = aws_ecr_repository.immutable.name
+
+  policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Expire untagged images after 1 day"
+        selection = {
+          tagStatus   = "untagged"
+          countType   = "sinceImagePushed"
+          countUnit   = "days"
+          countNumber = 1
+        }
+        action = { type = "expire" }
+      }
+    ]
+  })
+}
+
+# ECR Repository Policy for immutable repo (cross-account access edge case)
+resource "aws_ecr_repository_policy" "immutable" {
+  repository = aws_ecr_repository.immutable.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowPull"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        }
+        Action = [
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchGetImage",
+          "ecr:BatchCheckLayerAvailability"
+        ]
+      }
+    ]
+  })
+}
+
+# ECR Repository - No scanning (edge case: scanning disabled)
+resource "aws_ecr_repository" "no_scan" {
+  name                 = "${var.project_name}-no-scan"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = false
+  }
+
+  tags = merge(
+    var.common_tags,
+    {
+      Name    = "${var.project_name}-no-scan"
+      Purpose = "ECR repo with scanning disabled"
+    }
+  )
+}

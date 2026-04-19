@@ -33,3 +33,21 @@ variable "common_tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "kms_key_arn" {
+  description = "KMS key ARN for ECR encryption"
+  type        = string
+  default     = ""
+}
+
+variable "db_secret_arn" {
+  description = "Secrets Manager ARN for DB credentials injected into ECS containers"
+  type        = string
+  default     = ""
+}
+
+variable "api_keys_secret_arn" {
+  description = "Secrets Manager ARN for API keys injected into ECS containers"
+  type        = string
+  default     = ""
+}

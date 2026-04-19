@@ -57,3 +57,51 @@ variable "enable_messaging" {
   type        = bool
   default     = false
 }
+
+variable "db_secret_arn" {
+  description = "Secrets Manager ARN for DB credentials"
+  type        = string
+  default     = ""
+}
+
+variable "api_keys_secret_arn" {
+  description = "Secrets Manager ARN for API keys"
+  type        = string
+  default     = ""
+}
+
+variable "rds_endpoint" {
+  description = "RDS endpoint for Lambda environment"
+  type        = string
+  default     = ""
+}
+
+variable "dynamodb_table_name" {
+  description = "DynamoDB table name for Lambda environment"
+  type        = string
+  default     = ""
+}
+
+variable "s3_bucket_name" {
+  description = "S3 bucket name for Lambda environment"
+  type        = string
+  default     = ""
+}
+
+variable "private_subnet_ids" {
+  description = "Private subnet IDs for VPC-attached Lambda"
+  type        = list(string)
+  default     = []
+}
+
+variable "lambda_security_group_id" {
+  description = "Security group ID for VPC-attached Lambda"
+  type        = string
+  default     = ""
+}
+
+variable "enable_s3_trigger" {
+  description = "Enable S3 EventBridge trigger for Lambda"
+  type        = bool
+  default     = false
+}

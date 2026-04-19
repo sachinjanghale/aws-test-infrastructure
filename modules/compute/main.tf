@@ -43,7 +43,7 @@ resource "local_file" "private_key" {
   file_permission = "0400"
 }
 
-# Lambda Function 1 - Python
+# Lambda Function 1 - Python (VPC-attached, wired to DB secrets)
 resource "aws_lambda_function" "python_function" {
   filename         = data.archive_file.python_lambda.output_path
   function_name    = "${var.project_name}-python-function"
@@ -54,10 +54,25 @@ resource "aws_lambda_function" "python_function" {
   timeout          = 30
   memory_size      = 128
 
+  # VPC configuration - Python Lambda runs inside VPC for DB access
+  dynamic "vpc_config" {
+    for_each = length(var.private_subnet_ids) > 0 && var.lambda_security_group_id != "" ? [1] : []
+    content {
+      subnet_ids         = var.private_subnet_ids
+      security_group_ids = [var.lambda_security_group_id]
+    }
+  }
+
   environment {
     variables = {
-      PROJECT_NAME = var.project_name
-      ENVIRONMENT  = "test"
+      PROJECT_NAME        = var.project_name
+      ENVIRONMENT         = "test"
+      DB_SECRET_ARN       = var.db_secret_arn
+      API_KEYS_SECRET_ARN = var.api_keys_secret_arn
+      RDS_ENDPOINT        = var.rds_endpoint
+      DYNAMODB_TABLE      = var.dynamodb_table_name
+      S3_BUCKET           = var.s3_bucket_name
+      RUNTIME             = "python3.11"
     }
   }
 
@@ -65,13 +80,14 @@ resource "aws_lambda_function" "python_function" {
     var.common_tags,
     {
       Name    = "${var.project_name}-python-function"
-      Purpose = "Python Lambda function for testing"
+      Purpose = "Python Lambda - VPC-attached, DB access via Secrets Manager"
       Runtime = "python3.11"
+      Network = "vpc"
     }
   )
 }
 
-# Lambda Function 2 - Node.js
+# Lambda Function 2 - Node.js (public, wired to API Gateway)
 resource "aws_lambda_function" "nodejs_function" {
   filename         = data.archive_file.nodejs_lambda.output_path
   function_name    = "${var.project_name}-nodejs-function"
@@ -82,10 +98,16 @@ resource "aws_lambda_function" "nodejs_function" {
   timeout          = 30
   memory_size      = 128
 
+  # No VPC - public Lambda for API Gateway integration
   environment {
     variables = {
-      PROJECT_NAME = var.project_name
-      ENVIRONMENT  = "test"
+      PROJECT_NAME        = var.project_name
+      ENVIRONMENT         = "test"
+      API_KEYS_SECRET_ARN = var.api_keys_secret_arn
+      DYNAMODB_TABLE      = var.dynamodb_table_name
+      S3_BUCKET           = var.s3_bucket_name
+      RUNTIME             = "nodejs20.x"
+      INTEGRATION         = "api-gateway"
     }
   }
 
@@ -93,8 +115,9 @@ resource "aws_lambda_function" "nodejs_function" {
     var.common_tags,
     {
       Name    = "${var.project_name}-nodejs-function"
-      Purpose = "Node.js Lambda function for testing"
+      Purpose = "Node.js Lambda - public, API Gateway integration"
       Runtime = "nodejs20.x"
+      Network = "public"
     }
   )
 }
@@ -352,4 +375,66 @@ resource "aws_launch_configuration" "web" {
   lifecycle {
     create_before_destroy = true
   }
+}
+
+# EventBridge rule triggered by S3 PutObject events
+resource "aws_cloudwatch_event_rule" "s3_put_object" {
+  count       = var.enable_s3_trigger ? 1 : 0
+  name        = "${var.project_name}-s3-put-trigger"
+  description = "Trigger Lambda on S3 PutObject events"
+
+  event_pattern = jsonencode({
+    source      = ["aws.s3"]
+    detail-type = ["Object Created"]
+    detail = {
+      bucket = {
+        name = [var.s3_bucket_name]
+      }
+      reason = ["PutObject"]
+    }
+  })
+
+  tags = merge(var.common_tags, {
+    Name    = "${var.project_name}-s3-put-trigger"
+    Purpose = "EventBridge rule for S3 PutObject to Lambda"
+  })
+}
+
+# EventBridge target - invoke Python Lambda on S3 PutObject
+resource "aws_cloudwatch_event_target" "s3_to_lambda" {
+  count     = var.enable_s3_trigger ? 1 : 0
+  rule      = aws_cloudwatch_event_rule.s3_put_object[0].name
+  target_id = "S3PutObjectToLambda"
+  arn       = aws_lambda_function.python_function.arn
+
+  input_transformer {
+    input_paths = {
+      bucket = "$.detail.bucket.name"
+      key    = "$.detail.object.key"
+      size   = "$.detail.object.size"
+    }
+    input_template = jsonencode({
+      source = "s3-event"
+      bucket = "<bucket>"
+      key    = "<key>"
+      size   = "<size>"
+    })
+  }
+}
+
+# Lambda permission for EventBridge S3 trigger
+resource "aws_lambda_permission" "s3_eventbridge" {
+  count         = var.enable_s3_trigger ? 1 : 0
+  statement_id  = "AllowS3EventBridge"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.python_function.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.s3_put_object[0].arn
+}
+
+# Enable EventBridge notifications on S3 bucket
+resource "aws_s3_bucket_notification" "s3_eventbridge" {
+  count       = var.enable_s3_trigger ? 1 : 0
+  bucket      = var.s3_bucket_name
+  eventbridge = true
 }
