@@ -80,7 +80,7 @@ resource "aws_lambda_function" "python_function" {
     var.common_tags,
     {
       Name    = "${var.project_name}-python-function"
-      Purpose = "Python Lambda - VPC-attached, DB access via Secrets Manager"
+      Purpose = "Python-Lambda-VPC-attached"
       Runtime = "python3.11"
       Network = "vpc"
     }
@@ -115,7 +115,7 @@ resource "aws_lambda_function" "nodejs_function" {
     var.common_tags,
     {
       Name    = "${var.project_name}-nodejs-function"
-      Purpose = "Node.js Lambda - public, API Gateway integration"
+      Purpose = "Nodejs-Lambda-API-Gateway"
       Runtime = "nodejs20.x"
       Network = "public"
     }

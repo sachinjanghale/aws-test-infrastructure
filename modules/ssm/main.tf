@@ -1,7 +1,7 @@
 # SSM Parameter Store Module
 
 resource "aws_ssm_parameter" "string" {
-  name        = "/${var.project_name}/config/app-name"
+  name        = "/app/${var.project_name}/config/app-name"
   type        = "String"
   value       = var.project_name
   description = "Application name parameter"
@@ -10,7 +10,7 @@ resource "aws_ssm_parameter" "string" {
 }
 
 resource "aws_ssm_parameter" "secure_string" {
-  name        = "/${var.project_name}/config/db-password"
+  name        = "/app/${var.project_name}/config/db-password"
   type        = "SecureString"
   value       = "placeholder-password-123"
   description = "Database password (SecureString)"
@@ -20,7 +20,7 @@ resource "aws_ssm_parameter" "secure_string" {
 }
 
 resource "aws_ssm_parameter" "string_list" {
-  name        = "/${var.project_name}/config/allowed-ips"
+  name        = "/app/${var.project_name}/config/allowed-ips"
   type        = "StringList"
   value       = "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
   description = "Allowed IP ranges"

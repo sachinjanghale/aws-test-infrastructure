@@ -8,7 +8,7 @@ resource "aws_eip" "standalone" {
 
 # EIP attached to EC2 instance
 resource "aws_eip" "ec2" {
-  count    = var.ec2_instance_id != "" ? 1 : 0
+  count    = var.enable_ec2_eip ? 1 : 0
   domain   = "vpc"
   instance = var.ec2_instance_id
   tags     = merge(var.common_tags, { Name = "${var.project_name}-ec2-eip", Purpose = "EIP for EC2 instance" })

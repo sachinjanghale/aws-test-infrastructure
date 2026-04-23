@@ -1,5 +1,8 @@
 # SES Module - Email Identity, Configuration Set, Templates
 
+data "aws_caller_identity" "current" {}
+data "aws_region" "current" {}
+
 resource "aws_ses_email_identity" "main" {
   email = var.ses_email
 }
@@ -28,6 +31,31 @@ resource "aws_ses_receipt_rule_set" "main" {
   rule_set_name = "${var.project_name}-rule-set"
 }
 
+# S3 bucket policy for SES to write emails
+resource "aws_s3_bucket_policy" "ses" {
+  bucket = var.s3_bucket_name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowSESPuts"
+        Effect = "Allow"
+        Principal = {
+          Service = "ses.amazonaws.com"
+        }
+        Action   = "s3:PutObject"
+        Resource = "arn:aws:s3:::${var.s3_bucket_name}/ses/*"
+        Condition = {
+          StringEquals = {
+            "aws:Referer" = data.aws_caller_identity.current.account_id
+          }
+        }
+      }
+    ]
+  })
+}
+
 resource "aws_ses_receipt_rule" "main" {
   name          = "${var.project_name}-receipt-rule"
   rule_set_name = aws_ses_receipt_rule_set.main.rule_set_name
@@ -38,4 +66,6 @@ resource "aws_ses_receipt_rule" "main" {
     bucket_name = var.s3_bucket_name
     position    = 1
   }
+
+  depends_on = [aws_s3_bucket_policy.ses]
 }

@@ -245,6 +245,7 @@ module "eip" {
 
   project_name      = var.project_name
   ec2_instance_id   = var.enable_compute ? module.compute[0].ec2_instance_id : ""
+  enable_ec2_eip    = false # EC2 ID is computed, enable after first apply
   subnet_id         = module.networking[0].public_subnet_ids[0]
   security_group_id = module.networking[0].security_group_web_id
   common_tags       = local.common_tags
@@ -429,13 +430,14 @@ module "alb" {
   source = "./modules/alb"
   count  = var.enable_alb && var.enable_networking ? 1 : 0
 
-  project_name       = var.project_name
-  vpc_id             = module.networking[0].vpc_id
-  public_subnet_ids  = module.networking[0].public_subnet_ids
-  private_subnet_ids = module.networking[0].private_subnet_ids
-  security_group_id  = module.networking[0].security_group_web_id
-  ec2_instance_id    = var.enable_compute ? module.compute[0].ec2_instance_id : ""
-  common_tags        = local.common_tags
+  project_name          = var.project_name
+  vpc_id                = module.networking[0].vpc_id
+  public_subnet_ids     = module.networking[0].public_subnet_ids
+  private_subnet_ids    = module.networking[0].private_subnet_ids
+  security_group_id     = module.networking[0].security_group_web_id
+  ec2_instance_id       = var.enable_compute ? module.compute[0].ec2_instance_id : ""
+  enable_ec2_attachment = false # EC2 ID is computed, attach manually after apply
+  common_tags           = local.common_tags
 
   depends_on = [module.networking, module.compute]
 }

@@ -24,7 +24,7 @@ resource "aws_iot_role_alias" "main" {
 }
 
 resource "aws_iot_topic_rule" "main" {
-  name        = "${var.project_name}_iot_rule"
+  name        = replace("${var.project_name}_iot_rule", "-", "_")
   description = "IoT topic rule for ${var.project_name}"
   enabled     = true
   sql         = "SELECT * FROM 'iot/${var.project_name}/telemetry'"

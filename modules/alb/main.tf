@@ -35,7 +35,7 @@ resource "aws_lb_target_group" "alb_http" {
 
 # ALB Target Group Attachment
 resource "aws_lb_target_group_attachment" "alb" {
-  count            = var.ec2_instance_id != "" ? 1 : 0
+  count            = var.enable_ec2_attachment ? 1 : 0
   target_group_arn = aws_lb_target_group.alb_http.arn
   target_id        = var.ec2_instance_id
   port             = 80
