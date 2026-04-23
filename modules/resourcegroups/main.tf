@@ -1,7 +1,7 @@
 # Resource Groups Module
 
 resource "aws_resourcegroups_group" "main" {
-  name        = "${var.project_name}-rg"
+  name        = "infra-${var.project_name}-rg"
   description = "Resource group for all ${var.project_name} resources"
 
   resource_query {

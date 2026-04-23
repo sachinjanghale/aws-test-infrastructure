@@ -31,9 +31,24 @@ resource "aws_ses_receipt_rule_set" "main" {
   rule_set_name = "${var.project_name}-rule-set"
 }
 
-# S3 bucket policy for SES to write emails
-resource "aws_s3_bucket_policy" "ses" {
-  bucket = var.s3_bucket_name
+# Dedicated S3 bucket for SES email storage
+resource "aws_s3_bucket" "ses_emails" {
+  bucket        = "${var.project_name}-ses-emails"
+  force_destroy = true
+
+  tags = merge(var.common_tags, { Name = "${var.project_name}-ses-emails", Purpose = "SES email storage" })
+}
+
+resource "aws_s3_bucket_public_access_block" "ses_emails" {
+  bucket                  = aws_s3_bucket.ses_emails.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_policy" "ses_emails" {
+  bucket = aws_s3_bucket.ses_emails.id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -45,7 +60,7 @@ resource "aws_s3_bucket_policy" "ses" {
           Service = "ses.amazonaws.com"
         }
         Action   = "s3:PutObject"
-        Resource = "arn:aws:s3:::${var.s3_bucket_name}/ses/*"
+        Resource = "${aws_s3_bucket.ses_emails.arn}/*"
         Condition = {
           StringEquals = {
             "aws:Referer" = data.aws_caller_identity.current.account_id
@@ -54,6 +69,8 @@ resource "aws_s3_bucket_policy" "ses" {
       }
     ]
   })
+
+  depends_on = [aws_s3_bucket_public_access_block.ses_emails]
 }
 
 resource "aws_ses_receipt_rule" "main" {
@@ -63,9 +80,9 @@ resource "aws_ses_receipt_rule" "main" {
   scan_enabled  = true
 
   s3_action {
-    bucket_name = var.s3_bucket_name
+    bucket_name = aws_s3_bucket.ses_emails.id
     position    = 1
   }
 
-  depends_on = [aws_s3_bucket_policy.ses]
+  depends_on = [aws_s3_bucket_policy.ses_emails]
 }

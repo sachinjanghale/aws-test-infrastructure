@@ -27,6 +27,10 @@ resource "aws_cognito_user_pool" "main" {
     mutable             = true
   }
 
+  lifecycle {
+    ignore_changes = [schema]
+  }
+
   tags = merge(var.common_tags, { Name = "${var.project_name}-user-pool" })
 }
 

@@ -258,13 +258,10 @@ module "ses" {
   source = "./modules/ses"
   count  = var.enable_ses ? 1 : 0
 
-  project_name   = var.project_name
-  ses_email      = var.ses_email
-  domain_name    = var.domain_name
-  s3_bucket_name = var.enable_storage ? module.storage[0].s3_versioned_bucket_name : ""
-  common_tags    = local.common_tags
-
-  depends_on = [module.storage]
+  project_name = var.project_name
+  ses_email    = var.ses_email
+  domain_name  = var.domain_name
+  common_tags  = local.common_tags
 }
 
 # X-Ray Module
