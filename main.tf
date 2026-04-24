@@ -523,7 +523,7 @@ module "servicecatalog" {
   project_name = var.project_name
   common_tags  = local.common_tags
 }
-
+/*
 # SWF Module
 module "swf" {
   source = "./modules/swf"
@@ -532,6 +532,7 @@ module "swf" {
   project_name = var.project_name
   common_tags  = local.common_tags
 }
+*/
 
 # VPC Peering Module
 module "vpc_peering" {
